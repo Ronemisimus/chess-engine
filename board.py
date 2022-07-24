@@ -2,21 +2,24 @@ import constants
 
 class Piece():
     def __init__(self,sign:str):
-        piece, owner = constants.convertToInts(sign)
+        piece, owner = constants.convertToInts[sign]
         self.tool = piece
         self.owner = owner
+    def __str__(self) -> str:
+        return constants.convertToChars[self.owner][self.tool]
         
 
 class Board():
     def __init__(self):
         self.physical_board={
-            'a':[8*Piece(" ")],
-            'b':[8*Piece(" ")],
-            'c':[8*Piece(" ")],
-            'e':[8*Piece(" ")],
-            'f':[8*Piece(" ")],
-            'g':[8*Piece(" ")],
-            'h':[8*Piece(" ")]
+            'a':8*[Piece(" ")],
+            'b':8*[Piece(" ")],
+            'c':8*[Piece(" ")],
+            'd':8*[Piece(" ")],
+            'e':8*[Piece(" ")],
+            'f':8*[Piece(" ")],
+            'g':8*[Piece(" ")],
+            'h':8*[Piece(" ")]
         }
 
     def __setitem__(self, key:tuple, value:Piece):
