@@ -1,6 +1,6 @@
 from board import Move
 from chessState import ChessState
-from constants import EMPTY, KING_CASTLING, QUEEN_CASTLING, WHITE, validLocation,addLetter, BLACK
+from constants import BISHOP, EMPTY, KING_CASTLING, KNIGHT, KNIGHT_MOVE_CHANGES, PAWN, QUEEN, QUEEN_CASTLING, ROOK, WHITE, validLocation,addLetter, BLACK
 
 # pawn_location, enpassant_square - (letter,number)
 # enpassant - (is the enpassant possible, pawns that can eat)
@@ -44,9 +44,34 @@ moveInDir = lambda location, dir: (addLetter(location[0],dir[0]),location[1]+dir
 
 def unchecked(state:ChessState, square):
     valid = validLocation(*square)
-    enemy = WHITE if state.to_move == BLACK else BLACK
+    enemy = WHITE if state.board[square].owner == BLACK else BLACK
     if valid:
-        return True
+        knight_check = False
+        for dir in KNIGHT_MOVE_CHANGES:
+            slot = moveInDir(square,dir)
+            if validLocation(*slot) and state.board[slot].owner==enemy and \
+                state.board[slot].tool == KNIGHT:
+                knight_check = True
+        pawn_check = False
+        direction = 1 if enemy == BLACK else -1
+        pawn_dirs = [ (addLetter(square[0],-1),square[1]+direction) , (addLetter(square[0],1),square[1]+direction) ]
+        for dir in pawn_dirs:
+            slot = moveInDir(square,dir)
+            if validLocation(*slot) and state.board[slot].owner==enemy and \
+                state.board[slot].tool == PAWN:
+                pawn_check = True
+        range_check = False
+        range_dirs = [(0,1),(1,1),(1,0),(1,-1),(0,-1),(-1,-1),(-1,0),(-1,1)]
+        for dir in range_dirs:
+            slot = moveInDir(square,dir)
+            while validLocation(*slot) and state.board[slot].owner == EMPTY:
+                slot = moveInDir(square,dir)
+            if validLocation(*slot) and state.board[slot].owner == enemy:
+                range_check = state.board[slot].tool == ROOK or \
+                    state.board[slot].tool == BISHOP or \
+                    state.board[slot].tool == QUEEN
+        if knight_check or pawn_check or range_check:
+            return True
     return False
 
 
@@ -76,7 +101,7 @@ def king_moves(state:ChessState,king_loc):
     king_dirs = [(0,1),(1,1),(1,0),(1,-1),(0,-1),(-1,-1),(-1,0),(-1,1)]
     for dir in king_dirs:
         slot = moveInDir(king_loc,dir)
-        if validLocation(*slot) and state.board[slot].owner==EMPTY:
+        if validLocation(*slot) and state.board[slot].owner!=state.board[king_loc].owner:
             moves.append(Move(king_loc,slot,""))
     return moves
 
@@ -84,6 +109,10 @@ def king_moves(state:ChessState,king_loc):
 
 def knight_moves(state:ChessState,knight_pos):
     moves=[]
+    for dir in KNIGHT_MOVE_CHANGES:
+        slot = moveInDir(knight_pos,dir)
+        if validLocation(*slot) and state.board[slot].owner!=state.board[knight_pos].owner:
+            moves.append(Move(knight_pos,slot,""))
     return moves
 
 
@@ -94,7 +123,11 @@ def rook_moves(state:ChessState,rook_loc):
     for dir in directions:
         # walk in dir while dest is empty
         dest = moveInDir(rook_loc,dir)
-    
+        blocked = False
+        while validLocation(*dest) and state.board[dest].owner!=state.board[rook_loc].owner and not blocked:
+            moves.append(Move(rook_loc,dest,""))
+            blocked = state.board[dest].owner!=EMPTY
+            dest = moveInDir(dest,dir)    
     return moves
 
 def bishop_moves(state:ChessState,bishop_loc):
@@ -103,6 +136,11 @@ def bishop_moves(state:ChessState,bishop_loc):
     for dir in directions:
         # walk in dir while dest is empty
         dest = moveInDir(bishop_loc,dir)
+        blocked = False 
+        while validLocation(*dest) and state.board[dest].owner!=state.board[bishop_loc].owner and not blocked:
+            moves.append(Move(bishop_loc,dest,""))
+            blocked = state.board[dest].owner!=EMPTY
+            dest = moveInDir(dest,dir)    
     return moves
 
 def queen_moves(state:ChessState,queen_loc):
