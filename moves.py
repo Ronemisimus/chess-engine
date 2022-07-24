@@ -1,10 +1,9 @@
 from board import Move
-from chessState import ChessState
 from constants import BISHOP, EMPTY, KING_CASTLING, KNIGHT, KNIGHT_MOVE_CHANGES, PAWN, QUEEN, QUEEN_CASTLING, ROOK, WHITE, validLocation,addLetter, BLACK
 
 # pawn_location, enpassant_square - (letter,number)
 # enpassant - (is the enpassant possible, pawns that can eat)
-def pawn_moves(state:ChessState,pawn_location,enpassant_square):
+def pawn_moves(state,pawn_location):
     moves = []
     direction = 1 if state.to_move == WHITE else -1
     # forward
@@ -22,13 +21,13 @@ def pawn_moves(state:ChessState,pawn_location,enpassant_square):
     if validLocation(*slot_left):
         capturable = state.board[slot_left].owner!=state.board[pawn_location].owner and \
             state.board[slot_left].owner != EMPTY
-        enpassantable = slot_left == enpassant_square
+        enpassantable = slot_left == state.enpassant
         if capturable or enpassantable:
             moves.append(Move(pawn_location,slot_left,""))
     if validLocation(*slot_right):
         capturable = state.board[slot_right].owner!=state.board[pawn_location].owner and \
             state.board[slot_right].owner != EMPTY
-        enpassantable = slot_right == enpassant_square
+        enpassantable = slot_right == state.enpassant
         if capturable or enpassantable:
             moves.append(Move(pawn_location,slot_right,""))
     # promotions
@@ -42,7 +41,7 @@ def pawn_moves(state:ChessState,pawn_location,enpassant_square):
 moveInDir = lambda location, dir: (addLetter(location[0],dir[0]),location[1]+dir[1])
 
 
-def unchecked(state:ChessState, square):
+def unchecked(state, square):
     valid = validLocation(*square)
     enemy = WHITE if state.board[square].owner == BLACK else BLACK
     if valid:
@@ -54,7 +53,7 @@ def unchecked(state:ChessState, square):
                 knight_check = True
         pawn_check = False
         direction = 1 if enemy == BLACK else -1
-        pawn_dirs = [ (addLetter(square[0],-1),square[1]+direction) , (addLetter(square[0],1),square[1]+direction) ]
+        pawn_dirs = [ (-1,direction) , (1,direction) ]
         for dir in pawn_dirs:
             slot = moveInDir(square,dir)
             if validLocation(*slot) and state.board[slot].owner==enemy and \
@@ -65,22 +64,24 @@ def unchecked(state:ChessState, square):
         for dir in range_dirs:
             slot = moveInDir(square,dir)
             while validLocation(*slot) and state.board[slot].owner == EMPTY:
-                slot = moveInDir(square,dir)
+                slot = moveInDir(slot,dir)
             if validLocation(*slot) and state.board[slot].owner == enemy:
                 range_check = state.board[slot].tool == ROOK or \
                     state.board[slot].tool == BISHOP or \
                     state.board[slot].tool == QUEEN
         if knight_check or pawn_check or range_check:
+            return False
+        else:
             return True
     return False
 
 
-def clear(state:ChessState,square):
+def clear(state,square):
     valid = validLocation(square)
     return valid and state.board[square].owner == EMPTY
 
 
-def king_moves(state:ChessState,king_loc):
+def king_moves(state,king_loc):
     moves=[]
     # castling
     if state.castling[state.to_move][KING_CASTLING]:
@@ -107,7 +108,7 @@ def king_moves(state:ChessState,king_loc):
 
 
 
-def knight_moves(state:ChessState,knight_pos):
+def knight_moves(state,knight_pos):
     moves=[]
     for dir in KNIGHT_MOVE_CHANGES:
         slot = moveInDir(knight_pos,dir)
@@ -117,7 +118,7 @@ def knight_moves(state:ChessState,knight_pos):
 
 
 
-def rook_moves(state:ChessState,rook_loc):
+def rook_moves(state,rook_loc):
     moves=[]
     directions = [(1,0),(-1,0),(0,1),(0,-1)]
     for dir in directions:
@@ -130,7 +131,7 @@ def rook_moves(state:ChessState,rook_loc):
             dest = moveInDir(dest,dir)    
     return moves
 
-def bishop_moves(state:ChessState,bishop_loc):
+def bishop_moves(state,bishop_loc):
     moves=[]
     directions = [(1,1),(-1,-1),(-1,1),(1,-1)]
     for dir in directions:
@@ -143,7 +144,7 @@ def bishop_moves(state:ChessState,bishop_loc):
             dest = moveInDir(dest,dir)    
     return moves
 
-def queen_moves(state:ChessState,queen_loc):
+def queen_moves(state,queen_loc):
     moves=[]
     moves.extend(bishop_moves(state,queen_loc))
     moves.extend(rook_moves(state,queen_loc))

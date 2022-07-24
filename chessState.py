@@ -1,5 +1,6 @@
 from constants import EMPTY, KING, KING_CASTLING, PAWN, QUEEN_CASTLING, ROOK, addLetter, WHITE, BLACK, validLocation
 from board import Board, Move,Piece
+from moves import bishop_moves, king_moves, knight_moves, pawn_moves, rook_moves, queen_moves, unchecked
 
 def get_board(fen:str):
     board = Board()
@@ -50,6 +51,7 @@ class ChessState():
 
         self.print_lists=False
     
+
     def do_move(self,move:Move):
         # update board``
         captured_piece = None
@@ -140,6 +142,7 @@ class ChessState():
         # update turn owner
         self.to_move = (1-(self.to_move -1))+1
 
+
     def __str__(self) -> str:
         block_len = 48
         res = "   |  " + "  |  ".join([chr(i) for i in range(ord('A'),ord('I'))]) + "  |\n"
@@ -162,110 +165,56 @@ class ChessState():
         return res
 
 
-cs = ChessState()
+    def copy(self):
+        res  = ChessState()
+        for key in self.board.physical_board:
+            res.board.physical_board[key] = self.board.physical_board[key].copy()
+        for key in self.pieces:
+            res.pieces[key] = self.pieces[key].copy()
+        res.castling = self.castling.copy()
+        res.enpassant = self.enpassant
+        res.full_move_number = self.full_move_number
+        res.half_move_clock = self.half_move_clock
+        res.print_lists = self.print_lists
+        return res
 
-cs.print_lists = True
+    def actions(self):
+        actions = []
+        function_map = \
+        {
+            'k':king_moves,
+            'K':king_moves,
+            'q':queen_moves,
+            'Q':queen_moves,
+            'b':bishop_moves,
+            'B':bishop_moves,
+            'n':knight_moves,
+            'N':knight_moves,
+            'r':rook_moves,
+            'R':rook_moves,
+            'p':pawn_moves,
+            'P':pawn_moves
+        }
 
-print(cs)
+        for key in self.pieces:
+            if Piece(key).owner == self.to_move:
+                for location in self.pieces[key]:
+                    actions.extend(function_map[key](self,location))
+        
+        final_actions = []
+        key = 'k' if self.to_move == BLACK else 'K'
+        for act in actions:
+            state = self.copy()
+            state.do_move(act)
+            if unchecked(state,state.pieces[key][0]):
+                final_actions.append(act)
+        return final_actions
 
-print("\n\ndoing e2e4\n\n")
 
-cs.do_move(Move(('e',2),('e',4),""))
+    def final_state(self):
+        return len(self.actions())==0
 
-print(cs)
 
-print("\n\ndoing e7e5\n\n")
+    def winner(self):
+        print("not done")
 
-cs.do_move(Move(('e',7),('e',5),""))
-
-print(cs)
-
-print("\n\ndoing g1f3\n\n")
-
-cs.do_move(Move(('g',1),('f',3),""))
-
-print(cs)
-
-print("\n\ndoing g8f6\n\n")
-
-cs.do_move(Move(('g',8),('f',6),""))
-
-print(cs)
-
-print("\n\ndoing f1d3\n\n")
-
-cs.do_move(Move(('f',1),('d',3),""))
-
-print(cs)
-
-print("\n\ndoing f8d6\n\n")
-
-cs.do_move(Move(('f',8),('d',6),""))
-
-print(cs)
-
-print("\n\ndoing e1g1\n\n")
-
-cs.do_move(Move(('e',1),('g',1),""))
-
-print(cs)
-
-print("\n\ndoing e8g8\n\n")
-
-cs.do_move(Move(('e',8),('g',8),""))
-
-print(cs)
-
-print("\n\ndoing c2c4\n\n")
-
-cs.do_move(Move(('c',2),('c',4),""))
-
-print(cs)
-
-print("\n\ndoing c7c6\n\n")
-
-cs.do_move(Move(('c',7),('c',6),""))
-
-print(cs)
-
-print("\n\ndoing c4c5\n\n")
-
-cs.do_move(Move(('c',4),('c',5),""))
-
-print(cs)
-
-print("\n\ndoing b7b5\n\n")
-
-cs.do_move(Move(('b',7),('b',5),""))
-
-print(cs)
-
-print("\n\ndoing c5b6\n\n")
-
-cs.do_move(Move(('c',5),('b',6),""))
-
-print(cs)
-
-print("\n\ndoing b8a6\n\n")
-
-cs.do_move(Move(('b',8),('a',6),""))
-
-print(cs)
-
-print("\n\ndoing b6b7\n\n")
-
-cs.do_move(Move(('b',6),('b',7),""))
-
-print(cs)
-
-print("\n\ndoing d8a5\n\n")
-
-cs.do_move(Move(('d',8),('a',5),""))
-
-print(cs)
-
-print("\n\ndoing b7b8q\n\n")
-
-cs.do_move(Move(('b',7),('a',8),"q"))
-
-print(cs)

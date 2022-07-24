@@ -35,3 +35,12 @@ class Move():
         self.src = src
         self.dest = dest
         self.promotion = promotion
+    
+    def read_move():
+        move = input()
+        return Move((move[0],int(move[1])), (move[2],int(move[3])), move[4:])
+
+    def __eq__(self, __o: object) -> bool:
+        return self.src == __o.src and self.dest == __o.dest and self.promotion == __o.promotion
+
+
