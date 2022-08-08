@@ -84,15 +84,16 @@ def clear(state,square):
 def king_moves(state,king_loc):
     moves=[]
     # castling
+    back_rank = 1 if state.board[king_loc].owner==WHITE else 8
     if state.castling[state.to_move][KING_CASTLING]:
-        slots = [('f',1),('g',1)]
+        slots = [('f',back_rank),('g',back_rank)]
         clear_slots = True
         for slot in slots:
             clear_slots = clear_slots and state.board[slot].owner==EMPTY
         if clear_slots:
             moves.append(Move(king_loc,slots[1],""))
     if state.castling[state.to_move][QUEEN_CASTLING]:
-        slots = [('b',1),('c',1),('d',1)]
+        slots = [('b',back_rank),('c',back_rank),('d',back_rank)]
         clear_slots = True
         for slot in slots:
             clear_slots = clear_slots and state.board[slot].owner==EMPTY

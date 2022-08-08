@@ -1,6 +1,7 @@
 from constants import EMPTY, KING, KING_CASTLING, PAWN, QUEEN_CASTLING, ROOK, addLetter, WHITE, BLACK, validLocation
 from board import Board, Move,Piece
 from moves import bishop_moves, king_moves, knight_moves, pawn_moves, rook_moves, queen_moves, unchecked
+import copy
 
 def get_board(fen:str):
     board = Board()
@@ -60,6 +61,7 @@ class ChessState():
         moved_rook = None
         rook_move = None
         king_moved =False
+        double_move = False
         # check if pawn move
         if self.board[move.src].tool == PAWN:
             """pawn moves"""
@@ -74,6 +76,7 @@ class ChessState():
             if abs(move.src[1]-move.dest[1])==2:
                 """pawn first move needs to update enpassant"""
                 self.enpassant = (move.src[0],(move.src[1]+move.dest[1])//2)
+                double_move = True
         # check if king move
         elif self.board[move.src].tool == KING:
             """king moves"""
@@ -129,6 +132,9 @@ class ChessState():
             self.board[move.dest] = promoted_piece
             self.pieces[str(promoted_piece)].append(move.dest)
 
+        if not double_move:
+            self.enpassant = (addLetter('a',-1),-1)
+
         # update casteling
         if king_moved:
             self.castling[self.to_move] = [False,False]
@@ -168,11 +174,11 @@ class ChessState():
     def copy(self):
         res  = ChessState()
         for key in self.board.physical_board:
-            res.board.physical_board[key] = self.board.physical_board[key].copy()
+            res.board.physical_board[key] = [Piece(str(piece)) for piece in self.board.physical_board[key]]
         for key in self.pieces:
-            res.pieces[key] = self.pieces[key].copy()
-        res.castling = self.castling.copy()
-        res.enpassant = self.enpassant
+            res.pieces[key] = [(loc[0],loc[1]) for loc in self.pieces[key]]
+        res.castling = copy.deepcopy(self.castling)
+        res.enpassant = copy.deepcopy(self.enpassant)
         res.full_move_number = self.full_move_number
         res.half_move_clock = self.half_move_clock
         res.print_lists = self.print_lists
@@ -216,5 +222,11 @@ class ChessState():
 
 
     def winner(self):
-        print("not done")
-
+        key = 'k' if self.to_move == BLACK else 'K'
+        king_loc = self.pieces[key][0]
+        print("*************************************")
+        if unchecked(self,king_loc):
+            print("draw")
+        else:
+            print("white wins" if self.to_move == BLACK else "black wins")
+        print("*************************************")
