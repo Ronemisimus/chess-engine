@@ -182,6 +182,7 @@ class ChessState():
         res.full_move_number = self.full_move_number
         res.half_move_clock = self.half_move_clock
         res.print_lists = self.print_lists
+        res.to_move = self.to_move
         return res
 
     def actions(self):
@@ -224,9 +225,8 @@ class ChessState():
     def winner(self):
         key = 'k' if self.to_move == BLACK else 'K'
         king_loc = self.pieces[key][0]
-        print("*************************************")
         if unchecked(self,king_loc):
-            print("draw")
+            return 0
         else:
-            print("white wins" if self.to_move == BLACK else "black wins")
-        print("*************************************")
+            return 1 if self.to_move == BLACK else -1
+        

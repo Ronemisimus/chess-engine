@@ -1,8 +1,11 @@
 from chessState import ChessState
 from board import Move
+from search_ai import alpha_beta_cutoff
+
+search_depth = 4
 
 def alpha_beta_player(state:ChessState):
-    pass
+    return alpha_beta_cutoff(state)
 
 
 def query_player(state:ChessState):
@@ -25,7 +28,7 @@ def play_game(white_player, black_player):
 
 
 def main():
-    play_game(query_player,query_player)
+    play_game(query_player,alpha_beta_player)
 
 if __name__ == "__main__":
     main()
