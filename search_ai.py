@@ -4,7 +4,7 @@ import numpy as np
 from constants import BLACK, WHITE        
 
 
-def alpha_beta_cutoff(state:ChessState,d=1,cutoff_test=None,eval_fn=None):
+def alpha_beta_cutoff(state:ChessState,d=2,cutoff_test=None,eval_fn=None):
     player = state.to_move
     cutoff_test = (cutoff_test or (lambda state, depth: depth > d))
 

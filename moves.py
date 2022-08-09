@@ -59,17 +59,25 @@ def unchecked(state, square):
             if validLocation(*slot) and state.board[slot].owner==enemy and \
                 state.board[slot].tool == PAWN:
                 pawn_check = True
-        range_check = False
-        range_dirs = [(0,1),(1,1),(1,0),(1,-1),(0,-1),(-1,-1),(-1,0),(-1,1)]
-        for dir in range_dirs:
+        rook_check = False
+        bishop_check=False
+        rook_dirs = [(0,1),(1,0),(0,-1),(-1,0)]
+        bishop_dirs = [(1,1),(1,-1),(-1,-1),(-1,1)]
+        for dir in rook_dirs:
             slot = moveInDir(square,dir)
             while validLocation(*slot) and state.board[slot].owner == EMPTY:
                 slot = moveInDir(slot,dir)
             if validLocation(*slot) and state.board[slot].owner == enemy:
-                range_check = range_check or state.board[slot].tool == ROOK or \
-                    state.board[slot].tool == BISHOP or \
+                rook_check = rook_check or state.board[slot].tool == ROOK or \
                     state.board[slot].tool == QUEEN
-        if knight_check or pawn_check or range_check:
+        for dir in bishop_dirs:
+            slot = moveInDir(square,dir)
+            while validLocation(*slot) and state.board[slot].owner == EMPTY:
+                slot = moveInDir(slot,dir)
+            if validLocation(*slot) and state.board[slot].owner == enemy:
+                bishop_check = bishop_check or state.board[slot].tool == BISHOP or \
+                    state.board[slot].tool == QUEEN
+        if knight_check or pawn_check or rook_check or bishop_check:
             return False
         else:
             return True
