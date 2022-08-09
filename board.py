@@ -43,4 +43,7 @@ class Move():
     def __eq__(self, __o: object) -> bool:
         return self.src == __o.src and self.dest == __o.dest and self.promotion == __o.promotion
 
+    def __str__(self) -> str:
+        return str(self.src) + "->" + str(self.dest) + self.promotion
+
 
