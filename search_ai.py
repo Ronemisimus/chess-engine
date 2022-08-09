@@ -1,23 +1,26 @@
 from chessState import ChessState 
 import numpy as np
 
-from constants import BLACK, WHITE
-
-def utility(state:ChessState,final_flag,player):
-    copy_state = state.copy()
-    if final_flag:
-        return -100 * copy_state.winner()
-    else:
-        my_actions = len(copy_state.actions())
-        copy_state.to_move = WHITE if copy_state.to_move==BLACK else BLACK
-        enemy_actions = len(copy_state.actions())
-        return (my_actions-enemy_actions)*(-1 if player == WHITE else 1)
-        
+from constants import BLACK, WHITE        
 
 
-def alpha_beta_cutoff(state:ChessState,d=2,cutoff_test=None,eval_fn=None):
+def alpha_beta_cutoff(state:ChessState,d=1,cutoff_test=None,eval_fn=None):
     player = state.to_move
     cutoff_test = (cutoff_test or (lambda state, depth: depth > d))
+
+    # utility function
+    def utility(state:ChessState,final_flag,curr_player):
+        copy_state = state.copy()
+        if final_flag:
+            return -100 * copy_state.winner()
+        else:
+            copy_state.to_move = player
+            my_actions = len(copy_state.actions())
+            copy_state.to_move = WHITE if player==BLACK else BLACK
+            enemy_actions = len(copy_state.actions())
+            return my_actions-enemy_actions
+
+
     eval_fn = eval_fn or (lambda state: utility(state,state.final_state(), player))
     
     # Functions used by alpha_beta
@@ -54,6 +57,7 @@ def alpha_beta_cutoff(state:ChessState,d=2,cutoff_test=None,eval_fn=None):
         copy_state = state.copy()
         copy_state.do_move(a)
         v = min_value(copy_state, best_score, beta, 1)
+        print("ponder move: "+str(a)+" utility: "+str(v))
         if v > best_score:
             best_score = v
             best_action = a
