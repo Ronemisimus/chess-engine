@@ -66,7 +66,7 @@ def unchecked(state, square):
             while validLocation(*slot) and state.board[slot].owner == EMPTY:
                 slot = moveInDir(slot,dir)
             if validLocation(*slot) and state.board[slot].owner == enemy:
-                range_check = state.board[slot].tool == ROOK or \
+                range_check = range_check or state.board[slot].tool == ROOK or \
                     state.board[slot].tool == BISHOP or \
                     state.board[slot].tool == QUEEN
         if knight_check or pawn_check or range_check:
